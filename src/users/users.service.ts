@@ -3,7 +3,7 @@ import { Model } from 'mongoose';
 import { User } from './users.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserDTO } from './userDTO';
-const bcrypt = require('bcrypt'); // bcrypt still using module.export or i dont find esm modules :(
+const bcrypt = require('bcrypt'); // bcrypt still using module.export or i cant find esm modules :(
 
 @Injectable()
 export class UsersService {
