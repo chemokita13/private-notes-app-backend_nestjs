@@ -39,34 +39,49 @@ export class UsersService {
     msg: string;
     user: UserDTO;
   }> {
-    const user = await this.userModel.findOne({
-      username: userToAuth.username,
-    });
+    try {
+      const user = await this.userModel.findOne({
+        username: userToAuth.username,
+      });
 
-    if (!user) {
-      return { code: 400, msg: 'username not found', user: userToAuth };
+      if (!user) {
+        return { code: 400, msg: 'username not found', user: userToAuth };
+      }
+
+      const validPassword: Boolean = await bcrypt.compare(
+        userToAuth.password,
+        user.password,
+      );
+
+      if (!validPassword) {
+        return { code: 400, msg: 'invalid password', user: userToAuth };
+      }
+
+      return { code: 201, msg: 'all OK; cookie saved', user: user }; // returns user instead of userToAuth because if all is good, the cookie is the user._id
+    } catch (error) {
+      return {
+        code: 500,
+        msg: 'something went wrong, please try again',
+        user: userToAuth,
+      };
     }
-
-    const validPassword: Boolean = await bcrypt.compare(
-      userToAuth.password,
-      user.password,
-    );
-
-    if (!validPassword) {
-      return { code: 400, msg: 'invalid password', user: userToAuth };
-    }
-
-    return { code: 201, msg: 'all OK; cookie saved', user: user }; // returns user instead of userToAuth because if all is good, the cookie is the user._id
   }
 
   async deleteUser(
     userID: string,
-  ): Promise<{ code: number; msg: string; user: UserDTO }> {
-    const user = await this.userModel.findByIdAndDelete(userID);
-    return {
-      code: 201,
-      msg: 'all OK; user deleted',
-      user: user, // return example
-    };
+  ): Promise<{ code: number; msg: string; user?: UserDTO }> {
+    try {
+      const user = await this.userModel.findByIdAndDelete(userID);
+      return {
+        code: 201,
+        msg: 'all OK; user deleted',
+        user: user, // return example
+      };
+    } catch (error) {
+      return {
+        code: 500,
+        msg: 'something went wrong',
+      };
+    }
   }
 }
