@@ -3,21 +3,24 @@ import { Model } from 'mongoose';
 import { User } from './users.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserDTO } from './userDTO';
-const bcrypt = require('bcrypt'); // bcrypt still using module.export :(
+const bcrypt = require('bcrypt'); // bcrypt still using module.export or i dont find esm modules :(
 
 @Injectable()
 export class UsersService {
   private readonly salt: Number = process.env.SALT
     ? parseInt(process.env.SALT, 10)
     : 10;
+
   constructor(
     @InjectModel('User') // users collection
     private readonly userModel: Model<User>,
   ) {}
+
   async getUsers(): Promise<User[]> {
     // returns all users
     return await this.userModel.find({});
   }
+
   async createUser(newUser: UserDTO): Promise<User> {
     // bcrypt user password
     const hashedPassword: string = await bcrypt.hash(
@@ -34,7 +37,7 @@ export class UsersService {
   async authUser(userToAuth: UserDTO): Promise<{
     code: number;
     msg: string;
-    user: UserDTO | User;
+    user: UserDTO;
   }> {
     const user = await this.userModel.findOne({
       username: userToAuth.username,
@@ -53,6 +56,17 @@ export class UsersService {
       return { code: 400, msg: 'invalid password', user: userToAuth };
     }
 
-    return { code: 201, msg: 'invalid password', user };
+    return { code: 201, msg: 'all OK; cookie saved', user: user }; // returns user instead of userToAuth because if all is good, the cookie is the user._id
+  }
+
+  async deleteUser(
+    userID: string,
+  ): Promise<{ code: number; msg: string; user: UserDTO }> {
+    const user = await this.userModel.findByIdAndDelete(userID);
+    return {
+      code: 201,
+      msg: 'all OK; user deleted',
+      user: user, // return example
+    };
   }
 }

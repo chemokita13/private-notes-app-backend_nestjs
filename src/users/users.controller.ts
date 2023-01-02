@@ -1,12 +1,14 @@
-import { Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Controller, Delete, Get, Post, Req, Res } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './users.interface';
 import { Request, Response } from 'express';
-const jwt = require('jsonwebtoken');
+//const jwt = require('jsonwebtoken');
+import * as jwt from 'jsonwebtoken';
 import { serialize } from 'Cookie';
 import { UserDTO } from './userDTO';
 @Controller('users')
 export class UsersController {
+  private readonly jwt_Secret = process.env.SECRET || 'hard_secret';
   constructor(private readonly usersService: UsersService) {}
 
   @Get('/get')
@@ -25,7 +27,7 @@ export class UsersController {
     const returner: {
       code: number;
       msg: string;
-      user: UserDTO | User;
+      user: UserDTO;
     } = await this.usersService.authUser(request.body);
 
     if (returner.code !== 201) {
@@ -34,9 +36,9 @@ export class UsersController {
     const token = jwt.sign(
       {
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 1, // valid for 1 day
-        user: returner.user,
+        user: returner.user._id,
       },
-      'hard_secret',
+      this.jwt_Secret,
     );
     const serializedToken = serialize('token', token, {
       httpOnly: true,
@@ -46,6 +48,14 @@ export class UsersController {
       path: '/',
     });
     response.setHeader('Set-Cookie', serializedToken);
-    response.json({ login: true });
+    response.status(returner.code).json(returner);
+  }
+  @Delete('/delete')
+  deleteUser(
+    @Req() request: Request,
+  ): Promise<{ code: number; msg: string; user: UserDTO }> {
+    const { token } = request.cookies;
+    const { user } = jwt.verify(token, this.jwt_Secret);
+    return this.usersService.deleteUser(user);
   }
 }
