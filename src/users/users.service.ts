@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt'); // bcrypt still using module.export or i cant 
 
 @Injectable()
 export class UsersService {
+  // if exists a env var with salt number, to convert envString => envNumber
   private readonly salt: Number = process.env.SALT
     ? parseInt(process.env.SALT, 10)
     : 10;

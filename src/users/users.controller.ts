@@ -10,6 +10,7 @@ export class UsersController {
   private readonly jwt_Secret = process.env.SECRET || 'hard_secret';
   constructor(private readonly usersService: UsersService) {}
 
+  //* This method cant be able in prod mode (only for debug)
   @Get('/get')
   getUsers(): Promise<User[]> {
     return this.usersService.getUsers();
