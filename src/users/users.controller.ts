@@ -11,10 +11,10 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   //* This method cant be able in prod mode (only for debug)
-  @Get('/get')
-  getUsers(): Promise<User[]> {
-    return this.usersService.getUsers();
-  }
+  // @Get('/get')
+  // getUsers(): Promise<User[]> {
+  //   return this.usersService.getUsers();
+  // }
   @Post('/new')
   createUser(@Req() request: Request): Promise<User> {
     return this.usersService.createUser(request.body);
@@ -36,7 +36,7 @@ export class UsersController {
       }
       const token = jwt.sign(
         {
-          exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 1, // valid for 1 day
+          exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 1, // valid for 1 day (change the last number for change the days number cookie be able)
           user: returner.user._id,
         },
         this.jwt_Secret,
